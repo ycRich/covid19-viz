@@ -22,10 +22,10 @@ colors = {
 shadow = '3px 3px 5px 6px rgba(0, 0, 0, 0.4)'
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__)
-app.css.append_css({
-    'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
-})
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+# app.css.append_css({
+#     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
+# })
 
 timeseries = utils.load_state_timeseries()
 

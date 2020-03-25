@@ -110,7 +110,7 @@ def update_table(selected_date, county):
     case_types = ['Confirmed', 'Deaths', 'Recovered','Active']
     df = report.loc[report['Combined_Key']==(county+', US'), case_types]
     print(df)
-    res = ['Found records:', html.Br()]
+    res = [county, html.Br()]
     for x in case_types:
         print(x)
         res += [x + ': {}'.format(df[x].iloc[0]), html.Br()]

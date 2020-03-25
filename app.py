@@ -23,9 +23,6 @@ shadow = '3px 3px 5px 6px rgba(0, 0, 0, 0.4)'
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-# app.css.append_css({
-#     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
-# })
 
 timeseries = utils.load_state_timeseries()
 
@@ -114,7 +111,7 @@ def update_map(case_type, selected_date):
     report = utils.load_state_daily_report(m+'-'+d+'-'+y)
     if pd.to_datetime(selected_date) <= pd.to_datetime('03-22-2020'):
         fig = px.choropleth(
-            report, 
+            report, title='Case Distribution Map',
             locationmode='USA-states',
             color = np.log10(report[case_type]),
             locations=report['Province/State'],
@@ -132,17 +129,15 @@ def update_map(case_type, selected_date):
                     ticktext=['10', '100', '1k', '10k','100k'],
                     len=0.75, thickness=10
                 ),
-                margin={"r":0,"t":0,"l":0,"b":0}
+                margin={"r":0,"t":75,"l":0,"b":0}
         )
     else:
-        # report = report[report[case_type]>0]
         report = report.sort_values(case_type)
         fig = px.scatter_geo(
             report, title='Case Distribution Map',
             lat=report['Lat'], lon=report['Long_'], scope='usa',
             color = np.log10(report[case_type]+1),opacity=0.75,
             size = report[case_type]**0.5,
-            # locations='FIPS',
             hover_data=['Confirmed', 'Deaths', 'Recovered', 'Active'], 
             hover_name='Combined_Key',
             color_continuous_scale='YlOrRd',

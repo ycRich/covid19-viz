@@ -34,7 +34,7 @@ def load_state_timeseries():
 def load_state_daily_report(date):
     DAILY_REPORT_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{}.csv".format(date)
     try:
-        if pd.to_datetime(date) <= pd.to_datetime('03-22-2020'):
+        if pd.to_datetime(date) <= pd.to_datetime('03-21-2020'):
             report = pd.read_csv(DAILY_REPORT_URL)
             report = get_us_state(report)
         else:

@@ -77,7 +77,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         ])
         ,
         html.Div(className='ten columns', style={'box-shadow': shadow}, children=[
-            dcc.Graph(id='map', ),
+            dcc.Graph(id='map'),
             dcc.Graph(id='barchart')
         ])
     ]),
@@ -118,7 +118,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
 def update_map(case_type, selected_date):
     y, m, d = selected_date.split('-')
     report = utils.load_state_daily_report(m+'-'+d+'-'+y)
-    if pd.to_datetime(selected_date) <= pd.to_datetime('03-22-2020'):
+    if pd.to_datetime(selected_date) <= pd.to_datetime('03-21-2020'):
         fig = px.choropleth(
             report, title='Case Distribution Map',
             locationmode='USA-states',
@@ -175,7 +175,7 @@ def update_barchart(case_type, selected_date):
     y, m, d = selected_date.split('-')
     report = utils.load_state_daily_report(m+'-'+d+'-'+y)
     report = report.sort_values(case_type, ascending=False)[:30]
-    x = "Province/State" if pd.to_datetime(selected_date) <= pd.to_datetime('03-22-2020') else 'Combined_Key'
+    x = "Province/State" if pd.to_datetime(selected_date) <= pd.to_datetime('03-21-2020') else 'Combined_Key'
     fig = px.bar(
         report, title='',
         x=x,

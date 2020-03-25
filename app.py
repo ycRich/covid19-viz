@@ -22,23 +22,20 @@ colors = {
 shadow = '3px 3px 5px 6px rgba(0, 0, 0, 0.4)'
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+server = app.server
+
 timeseries = utils.load_state_timeseries()
-
-trend_confirmed = px.area(timeseries['confirmed'], x='date', y='Number of Cases', 
-                            color='Province/State', template=template, title='Number of Confirmed Cases')
-
-trend_deaths = px.area(timeseries['deaths'], x='date', y='Number of Cases',
-                            color='Province/State', template=template, title='Number of Deaths')
 
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     
     html.Div(style={'backgroundImage':'url(https://harfordcountyhealth.com/wp-content/uploads/2020/01/home-banner.jpg)',
-                'box-shadow': '3px 3px 5px 6px rgba(0, 0, 0, 0.4)',
+                'box-shadow': shadow,
                 'height': '150px'}, children=[
-        html.H1('US Coronavirus Dashboard', className='row', 
-            style={'textAlign': 'center', 'verticalAlign':'middle', 'padding':'40px', 'color':colors['header'], 
+        html.H1('U.S. Coronavirus Dashboard', className='row', 
+            style={'textAlign': 'center', 'verticalAlign':'middle', 'padding':'50px', 'color':colors['header'], 
         }
     )
     ]), 
@@ -50,7 +47,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     #     'color': colors['header']
     # }),
 
-    html.Div(className='row', style={'padding-left':'10%', 'padding-right':'10%'}, children=[
+    html.Div(className='row', style={'padding-left':'5%', 'padding-right':'5%'}, children=[
         html.Div(className='two columns', children=[
             html.Label('Select Case Type:', style={'color':colors['text']}), 
             dcc.RadioItems(
@@ -64,6 +61,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 ],
                 value='Confirmed'
             ),
+
             html.Br(),
             html.Label('Select Date: ', style={'color':colors['text']}),
             dcc.DatePickerSingle(
@@ -74,7 +72,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 max_date_allowed=date.today()-timedelta(days=1),
                 initial_visible_month=date.today()-timedelta(days=1),
                 date=date.today()-timedelta(days=1)
-            )
+            ),
+
         ])
         ,
         dcc.Graph(id='map', className='ten columns', style={'box-shadow': shadow}),
@@ -85,22 +84,29 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     #     'textAlign': 'center',
     #     'color': colors['header']
     # }),
-    html.Div(className='row', style={'padding-left': '10%', 'padding-right':'10%'}, children=[
+    html.Div(className='row', style={'padding-left': '5%', 'padding-right':'5%'}, children=[
         dcc.Graph(
             id='trend-confirmed',
             className='six columns',
-            figure=trend_confirmed,
+            figure=px.area(timeseries['confirmed'], x='date', y='Number of Cases',
+                            color='Province/State', template=template, title='Number of Confirmed Cases'),
             style={'box-shadow': shadow}
         ),
         dcc.Graph(
             id='trend-deaths',
             className='six columns',
-            figure=trend_deaths,
+            figure=px.area(timeseries['deaths'], x='date', y='Number of Cases',
+                            color='Province/State', template=template, title='Number of Deaths'),
             style={'box-shadow': shadow}
         )
-    ])
-])
+    ]),
 
+    html.Br(),
+    html.P("""This tracker takes data from the repository of the 2019 Novel Coronavirus Visual Dashboard operated
+        by the Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE). It will apply 
+        necessary cleansing/reformatting to make it use in traditional relational databases and data visualization tools.""", 
+        style={'color':colors['text'], 'padding-left':'5%', 'padding-right':'5%'})
+])
 
 @app.callback(
     Output("map", "figure" ), 

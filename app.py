@@ -23,6 +23,7 @@ shadow = '3px 3px 5px 6px rgba(0, 0, 0, 0.4)'
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.title = 'U.S. Coronavirus Dashboard'
 
 server = app.server
 

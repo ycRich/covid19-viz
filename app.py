@@ -89,14 +89,14 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
             id='trend-confirmed',
             className='six columns',
             figure=px.area(timeseries['confirmed'], x='date', y='Number of Cases',
-                            color='Province/State', template=template, title='Number of Confirmed Cases'),
+                            color='Province/State', template=template, title='Trend of Confirmed Cases (as of 03/22/2020)'),
             style={'box-shadow': shadow}
         ),
         dcc.Graph(
             id='trend-deaths',
             className='six columns',
             figure=px.area(timeseries['deaths'], x='date', y='Number of Cases',
-                            color='Province/State', template=template, title='Number of Deaths'),
+                            color='Province/State', template=template, title='Trend of Deaths (as of 03/22/2020)'),
             style={'box-shadow': shadow}
         )
     ]),

@@ -27,7 +27,7 @@ def load_state_timeseries():
         tmp_t = tmp.iloc[:,4:].transpose().reset_index()
         tmp_tidy = pd.melt(tmp_t, id_vars=['index'], value_vars=[x for x in tmp_t.columns if x!='index'])
         tmp_tidy.rename(columns={'index':'date', 'value':'Number of Cases'}, inplace=True)
-        res[x] = tmp_tidy[pd.to_datetime(tmp_tidy['date']) >= pd.to_datetime('03-10-2020')]
+        res[x] = tmp_tidy[(pd.to_datetime(tmp_tidy['date']) >= pd.to_datetime('03-10-2020')) & (pd.to_datetime(tmp_tidy['date']) <= pd.to_datetime('03-22-2020'))]
     return res
 
 

@@ -76,7 +76,10 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
 
         ])
         ,
-        dcc.Graph(id='map', className='ten columns', style={'box-shadow': shadow}),
+        html.Div(className='ten columns', style={'box-shadow': shadow}, children=[
+            dcc.Graph(id='map', ),
+            dcc.Graph(id='barchart')
+        ])
     ]),
 
     html.Br(),
@@ -161,6 +164,28 @@ def update_map(case_type, selected_date):
             ),
             margin={"r":0,"t":75,"l":0,"b":0}
         )
+    return fig
+
+
+@app.callback(
+    Output("barchart", "figure" ), 
+    [Input('case-type-radio', 'value'), Input('date-slider', 'date')]
+    )
+def update_barchart(case_type, selected_date):
+    y, m, d = selected_date.split('-')
+    report = utils.load_state_daily_report(m+'-'+d+'-'+y)
+    report = report.sort_values(case_type, ascending=False)[:30]
+    x = "Province/State" if pd.to_datetime(selected_date) <= pd.to_datetime('03-22-2020') else 'Combined_Key'
+    fig = px.bar(
+        report, title='',
+        x=x,
+        y=case_type, color=case_type, color_continuous_scale='Peach',
+        hover_data=['Confirmed', 'Deaths', 'Recovered', 'Active'], 
+        hover_name=x,
+        template=template
+    )
+    fig.update_xaxes(title_text='Location')
+    fig.update_layout(coloraxis_colorbar=dict(len=0.9, thickness=10))
     return fig
 
 

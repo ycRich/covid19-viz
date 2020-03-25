@@ -81,7 +81,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
             dcc.Graph(
                 id='trend-confirmed',
                 figure=px.area(timeseries['confirmed'], x='date', y='Number of Cases',
-                                color='Province/State', template=template, title='Trend of Confirmed Cases (as of 03/21/2020)')
+                                color='Province/State', template=template, title='Trend of Confirmed Cases (as of 03/22/2020)')
             ),
             dcc.Graph(
                 id='trend-deaths',
@@ -108,7 +108,7 @@ def update_table(selected_date, county):
     y, m, d = selected_date.split('-')
     report = utils.load_state_daily_report(m+'-'+d+'-'+y)
     case_types = ['Confirmed', 'Deaths', 'Recovered','Active']
-    df = report.loc[report['Combined_Key']==(county+', US'), case_types]
+    df = report.loc[report['Combined_Key'].str.lower()==(county+', US').lower(), case_types]
     print(df)
     res = [county, html.Br()]
     for x in case_types:
@@ -130,7 +130,7 @@ def update_map(case_type, selected_date):
         ticktext=['10', '100', '1k', '10k','100k']
         lat, lon = 'Latitude', 'Longitude'
     else:
-        # report = report.sort_values(case_type)
+        report = report.sort_values(case_type)
         location = 'Combined_Key'
         tickvals = [1, 2, 3, 4]
         ticktext=['10', '100', '1k', '10k']

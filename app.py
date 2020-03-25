@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
@@ -40,8 +41,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     
     html.Br(),
 
-    html.Div(className='row', style={'padding-left':'5%', 'padding-right':'5%'}, children=[
-        html.Div(className='two columns', children=[
+    html.Div(className='row', style={'padding-left':'2.5%', 'padding-right':'2.5%'}, children=[
+        html.Div(id='side-column', className='two columns', children=[
             html.Label('Select Case Type:', style={'color':colors['text']}), 
             dcc.RadioItems(
                 id='case-type-radio',
@@ -67,15 +68,20 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 date=date.today()-timedelta(days=1)
             ),
 
+            html.Br(), html.Br(),
+            html.Label('Search a County (Date after 03/22): ', style={'color': colors['text']}),
+            dcc.Input(id='search-input', type='text', placeholder="Essex, New Jersey", debounce=True, style={'width':'100%'}),
+            html.Div(id='search-output', style={'color':colors['text']})
+
         ])
         ,
-        html.Div(className='ten columns', style={'box-shadow': shadow}, children=[
+        html.Div(id='plots', className='ten columns', style={'box-shadow': shadow}, children=[
             dcc.Graph(id='map'),
             dcc.Graph(id='barchart'),
             dcc.Graph(
                 id='trend-confirmed',
                 figure=px.area(timeseries['confirmed'], x='date', y='Number of Cases',
-                                color='Province/State', template=template, title='Trend of Confirmed Cases (as of 03/22/2020)')
+                                color='Province/State', template=template, title='Trend of Confirmed Cases (as of 03/21/2020)')
             ),
             dcc.Graph(
                 id='trend-deaths',
@@ -91,6 +97,25 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     ]),
 
 ])
+
+@app.callback(
+    Output('search-output', 'children'),
+    [Input('date-slider', 'date'), Input('search-input', 'value')]
+)
+def update_table(selected_date, county):
+    if not county:
+        county = 'Essex, New Jersey'
+    y, m, d = selected_date.split('-')
+    report = utils.load_state_daily_report(m+'-'+d+'-'+y)
+    case_types = ['Confirmed', 'Deaths', 'Recovered','Active']
+    df = report.loc[report['Combined_Key']==(county+', US'), case_types]
+    print(df)
+    res = ['Found records:', html.Br()]
+    for x in case_types:
+        print(x)
+        res += [x + ': {}'.format(df[x].iloc[0]), html.Br()]
+    return res
+
 
 @app.callback(
     Output("map", "figure" ), 
@@ -125,8 +150,8 @@ def update_map(case_type, selected_date):
         geo_scope='usa',
         coloraxis_colorbar=dict(
             title='# of Cases',
-            tickvals=[0, 1, 2, 3, 4],
-            ticktext=['0', '10', '100', '1k','10k'],
+            tickvals=tickvals,
+            ticktext=ticktext,
             len=0.75, thickness=10
 
         ),

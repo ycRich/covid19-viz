@@ -34,7 +34,7 @@ def load_state_timeseries():
 def load_key_country_timeseries():
     URL = "https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv"
     key_countries = ['China', 'US', 'United Kingdom', 'Italy', 'France', 'Germany', 'Spain', 'Iran']
-    df = pd.read_csv(URL)
+    df = pd.read_csv(URL, parse_dates=['Date'])
     df = df[df['Country'].isin(key_countries)]
     return df
 

@@ -28,6 +28,7 @@ app.title = 'U.S. Coronavirus Dashboard'
 server = app.server
 
 timeseries = utils.load_key_country_timeseries()
+timeseries_us = timeseries[(timeseries['Country']=='US')]
 
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     
@@ -77,6 +78,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         ])
         ,
         html.Div(id='plots', className='ten columns', style={'box-shadow': shadow}, children=[
+            html.Div(id='header', className='row', style={'backgroundColor':'#111111'}),
             dcc.Graph(id='map'),
             dcc.Graph(id='barchart'),
             dcc.Graph(
@@ -99,11 +101,29 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
 
 ])
 
+
+@app.callback(
+    Output('header', 'children'),
+    [Input('date-slider', 'date')]
+)
+def update_table(selected_date):
+    df = timeseries_us.loc[timeseries_us['Date']==pd.to_datetime(selected_date), ['Confirmed','Deaths']]
+    return [html.H2(className='six columns', style={'padding':'2.5%','color':'#FBECC5','textAlign':'center'}, children=[
+                    '{} Confirmed'.format(df['Confirmed'].values[0])
+            ]),
+            html.H2(className='six columns', style={'padding':'2.5%','color':'#FB6900', 'textAlign':'center'}, children=[
+                    '{} Deaths'.format(df['Deaths'].values[0])
+            ])
+    ]               
+
+
 @app.callback(
     Output('search-output', 'children'),
     [Input('date-slider', 'date'), Input('search-input', 'value')]
 )
 def update_table(selected_date, county):
+    if pd.to_datetime(selected_date) <= pd.to_datetime('03-21-2020'):
+        return ['County info is only available after 03-22-2020. Please select a date after that.']
     if not county:
         county = 'Essex, New Jersey'
     y, m, d = selected_date.split('-')

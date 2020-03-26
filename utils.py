@@ -31,6 +31,14 @@ def load_state_timeseries():
     return res
 
 
+def load_key_country_timeseries():
+    URL = "https://raw.githubusercontent.com/datasets/covid-19/master/data/countries-aggregated.csv"
+    key_countries = ['China', 'US', 'United Kingdom', 'Italy', 'France', 'Germany', 'Spain', 'Iran']
+    df = pd.read_csv(URL)
+    df = df[df['Country'].isin(key_countries)]
+    return df
+
+
 def load_state_daily_report(date):
     DAILY_REPORT_URL = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/{}.csv".format(date)
     try:

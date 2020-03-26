@@ -27,7 +27,7 @@ app.title = 'U.S. Coronavirus Dashboard'
 
 server = app.server
 
-# timeseries = utils.load_state_timeseries()
+timeseries = utils.load_key_country_timeseries()
 
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     
@@ -79,16 +79,16 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         html.Div(id='plots', className='ten columns', style={'box-shadow': shadow}, children=[
             dcc.Graph(id='map'),
             dcc.Graph(id='barchart'),
-            # dcc.Graph(
-            #     id='trend-confirmed',
-            #     figure=px.area(timeseries['confirmed'], x='date', y='Number of Cases',
-            #                     color='Province/State', template=template, title='Trend of Confirmed Cases (as of 03/22/2020)')
-            # ),
-            # dcc.Graph(
-            #     id='trend-deaths',
-            #     figure=px.area(timeseries['deaths'], x='date', y='Number of Cases',
-            #                     color='Province/State', template=template, title='Trend of Deaths (as of 03/22/2020)')
-            # ),
+            dcc.Graph(
+                id='trend-confirmed',
+                figure=px.area(timeseries, x='Date', y='Confirmed',
+                                color='Country', template=template, title='Confirmed Cases Trend of Key Countries')
+            ),
+            dcc.Graph(
+                id='trend-deaths',
+                figure=px.area(timeseries, x='Date', y='Deaths',
+                                color='Country', template=template, title='Deaths Trend of Key Countries')
+            ),
             html.Br(),
             html.P("""This tracker takes data from the repository of the 2019 Novel Coronavirus Visual Dashboard operated
                 by the Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE). It will apply 

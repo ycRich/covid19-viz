@@ -27,7 +27,7 @@ app.title = 'U.S. Coronavirus Dashboard'
 
 server = app.server
 
-timeseries = utils.load_state_timeseries()
+# timeseries = utils.load_state_timeseries()
 
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     
@@ -79,16 +79,16 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         html.Div(id='plots', className='ten columns', style={'box-shadow': shadow}, children=[
             dcc.Graph(id='map'),
             dcc.Graph(id='barchart'),
-            dcc.Graph(
-                id='trend-confirmed',
-                figure=px.area(timeseries['confirmed'], x='date', y='Number of Cases',
-                                color='Province/State', template=template, title='Trend of Confirmed Cases (as of 03/22/2020)')
-            ),
-            dcc.Graph(
-                id='trend-deaths',
-                figure=px.area(timeseries['deaths'], x='date', y='Number of Cases',
-                                color='Province/State', template=template, title='Trend of Deaths (as of 03/22/2020)')
-            ),
+            # dcc.Graph(
+            #     id='trend-confirmed',
+            #     figure=px.area(timeseries['confirmed'], x='date', y='Number of Cases',
+            #                     color='Province/State', template=template, title='Trend of Confirmed Cases (as of 03/22/2020)')
+            # ),
+            # dcc.Graph(
+            #     id='trend-deaths',
+            #     figure=px.area(timeseries['deaths'], x='date', y='Number of Cases',
+            #                     color='Province/State', template=template, title='Trend of Deaths (as of 03/22/2020)')
+            # ),
             html.Br(),
             html.P("""This tracker takes data from the repository of the 2019 Novel Coronavirus Visual Dashboard operated
                 by the Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE). It will apply 
@@ -110,10 +110,8 @@ def update_table(selected_date, county):
     report = utils.load_state_daily_report(m+'-'+d+'-'+y)
     case_types = ['Confirmed', 'Deaths', 'Recovered','Active']
     df = report.loc[report['Combined_Key'].str.lower()==(county+', US').lower(), case_types]
-    print(df)
     res = [county, html.Br()]
     for x in case_types:
-        print(x)
         res += [x + ': {}'.format(df[x].iloc[0]), html.Br()]
     return res
 

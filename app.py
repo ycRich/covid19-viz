@@ -109,10 +109,10 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
 def update_summary(selected_date):
     df = timeseries_us.loc[timeseries_us['Date']==pd.to_datetime(selected_date), ['Confirmed','Deaths']]
     return [html.H2(className='six columns', style={'padding':'2.5%','color':'#FBECC5','textAlign':'center'}, children=[
-                    '{} Confirmed'.format(df['Confirmed'].values[0])
+                    '{:,} Confirmed'.format(df['Confirmed'].values[0])
             ]),
             html.H2(className='six columns', style={'padding':'2.5%','color':'#FB6900', 'textAlign':'center'}, children=[
-                    '{} Deaths'.format(df['Deaths'].values[0])
+                    '{:,} Deaths'.format(df['Deaths'].values[0])
             ])
     ]               
 

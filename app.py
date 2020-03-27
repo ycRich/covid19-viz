@@ -7,7 +7,7 @@ import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
 from us_state_abbrev import us_state_abbrev
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import utils
 from urllib.request import urlopen
 
@@ -65,9 +65,9 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 style={'color':colors['text']},
                 month_format='MMM-Do-YY',
                 min_date_allowed=date(2020, 3, 10),
-                max_date_allowed=date.today()-timedelta(days=1),
-                initial_visible_month=date.today()-timedelta(days=1),
-                date=date.today()-timedelta(days=1)
+                max_date_allowed=(datetime.utcnow()-timedelta(days=1, minutes=15)).date(),
+                initial_visible_month=(datetime.utcnow()-timedelta(days=1, minutes=15)).date(),
+                date=(datetime.utcnow()-timedelta(days=1, minutes=15)).date()
             ),
 
             html.Br(), html.Br(),
@@ -106,7 +106,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     Output('header', 'children'),
     [Input('date-slider', 'date')]
 )
-def update_table(selected_date):
+def update_summary(selected_date):
     df = timeseries_us.loc[timeseries_us['Date']==pd.to_datetime(selected_date), ['Confirmed','Deaths']]
     return [html.H2(className='six columns', style={'padding':'2.5%','color':'#FBECC5','textAlign':'center'}, children=[
                     '{} Confirmed'.format(df['Confirmed'].values[0])

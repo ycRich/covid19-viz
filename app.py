@@ -1,17 +1,16 @@
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
 from us_state_abbrev import us_state_abbrev
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import utils
 from urllib.request import urlopen
-# import json
-# with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
-#     counties = json.load(response)
+
 
 template='plotly_dark'
 colors = {
@@ -24,10 +23,12 @@ shadow = '3px 3px 5px 6px rgba(0, 0, 0, 0.4)'
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.title = 'U.S. Coronavirus Dashboard'
 
 server = app.server
 
-timeseries = utils.load_state_timeseries()
+timeseries = utils.load_key_country_timeseries()
+timeseries_us = timeseries[(timeseries['Country']=='US')]
 
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     
@@ -42,13 +43,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     
     html.Br(),
 
-    # html.H4(children='Case Distribution Map', style={
-    #     'textAlign': 'center',
-    #     'color': colors['header']
-    # }),
-
-    html.Div(className='row', style={'padding-left':'5%', 'padding-right':'5%'}, children=[
-        html.Div(className='two columns', children=[
+    html.Div(className='row', style={'padding-left':'2.5%', 'padding-right':'2.5%'}, children=[
+        html.Div(id='side-column', className='two columns', children=[
             html.Label('Select Case Type:', style={'color':colors['text']}), 
             dcc.RadioItems(
                 id='case-type-radio',
@@ -69,47 +65,76 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 style={'color':colors['text']},
                 month_format='MMM-Do-YY',
                 min_date_allowed=date(2020, 3, 10),
-                max_date_allowed=date.today()-timedelta(days=1),
-                initial_visible_month=date.today()-timedelta(days=1),
-                date=date.today()-timedelta(days=1)
+                max_date_allowed=(datetime.utcnow()-timedelta(days=1, minutes=15)).date(),
+                initial_visible_month=(datetime.utcnow()-timedelta(days=1, minutes=15)).date(),
+                date=(datetime.utcnow()-timedelta(days=1, minutes=15)).date()
             ),
+
+            html.Br(), html.Br(),
+            html.Label('Search a County (Date after 03/22): ', style={'color': colors['text']}),
+            dcc.Input(id='search-input', type='text', placeholder="Essex, New Jersey", debounce=True, style={'width':'100%'}),
+            html.Div(id='search-output', style={'color':colors['text']})
 
         ])
         ,
-        html.Div(className='ten columns', style={'box-shadow': shadow}, children=[
+        html.Div(id='plots', className='ten columns', style={'box-shadow': shadow}, children=[
+            html.Div(id='header', className='row', style={'backgroundColor':'#111111'}),
             dcc.Graph(id='map'),
-            dcc.Graph(id='barchart')
+            dcc.Graph(id='barchart'),
+            dcc.Graph(
+                id='trend-confirmed',
+                figure=px.area(timeseries, x='Date', y='Confirmed',
+                                color='Country', template=template, title='Confirmed Cases Trend of Key Countries')
+            ),
+            dcc.Graph(
+                id='trend-deaths',
+                figure=px.area(timeseries, x='Date', y='Deaths',
+                                color='Country', template=template, title='Deaths Trend of Key Countries')
+            ),
+            html.Br(),
+            html.P("""This tracker takes data from the repository of the 2019 Novel Coronavirus Visual Dashboard operated
+                by the Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE). It will apply 
+                necessary cleansing/reformatting to make it use in traditional relational databases and data visualization tools.""", 
+                style={'color':'#707070', 'padding-left':'5%', 'padding-right': '5%'})
         ])
     ]),
 
-    html.Br(),
-    # html.H4(children='Trend By States', style={
-    #     'textAlign': 'center',
-    #     'color': colors['header']
-    # }),
-    html.Div(className='row', style={'padding-left': '5%', 'padding-right':'5%'}, children=[
-        dcc.Graph(
-            id='trend-confirmed',
-            className='six columns',
-            figure=px.area(timeseries['confirmed'], x='date', y='Number of Cases',
-                            color='Province/State', template=template, title='Trend of Confirmed Cases (as of 03/22/2020)'),
-            style={'box-shadow': shadow}
-        ),
-        dcc.Graph(
-            id='trend-deaths',
-            className='six columns',
-            figure=px.area(timeseries['deaths'], x='date', y='Number of Cases',
-                            color='Province/State', template=template, title='Trend of Deaths (as of 03/22/2020)'),
-            style={'box-shadow': shadow}
-        )
-    ]),
-
-    html.Br(),
-    html.P("""This tracker takes data from the repository of the 2019 Novel Coronavirus Visual Dashboard operated
-        by the Johns Hopkins University Center for Systems Science and Engineering (JHU CSSE). It will apply 
-        necessary cleansing/reformatting to make it use in traditional relational databases and data visualization tools.""", 
-        style={'color':colors['text'], 'padding-left':'5%', 'padding-right':'5%'})
 ])
+
+
+@app.callback(
+    Output('header', 'children'),
+    [Input('date-slider', 'date')]
+)
+def update_summary(selected_date):
+    df = timeseries_us.loc[timeseries_us['Date']==pd.to_datetime(selected_date), ['Confirmed','Deaths']]
+    return [html.H2(className='six columns', style={'padding':'2.5%','color':'#FBECC5','textAlign':'center'}, children=[
+                    '{:,} Confirmed'.format(df['Confirmed'].values[0])
+            ]),
+            html.H2(className='six columns', style={'padding':'2.5%','color':'#FB6900', 'textAlign':'center'}, children=[
+                    '{:,} Deaths'.format(df['Deaths'].values[0])
+            ])
+    ]               
+
+
+@app.callback(
+    Output('search-output', 'children'),
+    [Input('date-slider', 'date'), Input('search-input', 'value')]
+)
+def update_table(selected_date, county):
+    if pd.to_datetime(selected_date) <= pd.to_datetime('03-21-2020'):
+        return ['County info is only available after 03-22-2020. Please select a date after that.']
+    if not county:
+        county = 'Essex, New Jersey'
+    y, m, d = selected_date.split('-')
+    report = utils.load_state_daily_report(m+'-'+d+'-'+y)
+    case_types = ['Confirmed', 'Deaths', 'Recovered','Active']
+    df = report.loc[report['Combined_Key'].str.lower()==(county+', US').lower(), case_types]
+    res = [county, html.Br()]
+    for x in case_types:
+        res += [x + ': {}'.format(df[x].iloc[0]), html.Br()]
+    return res
+
 
 @app.callback(
     Output("map", "figure" ), 
@@ -119,51 +144,38 @@ def update_map(case_type, selected_date):
     y, m, d = selected_date.split('-')
     report = utils.load_state_daily_report(m+'-'+d+'-'+y)
     if pd.to_datetime(selected_date) <= pd.to_datetime('03-21-2020'):
-        fig = px.choropleth(
-            report, title='Case Distribution Map',
-            locationmode='USA-states',
-            color = np.log10(report[case_type]),
-            locations=report['Province/State'],
-            hover_data=['Confirmed', 'Deaths', 'Recovered', 'Active'], 
-            hover_name='Province/State',
-            color_continuous_scale='YlOrRd',
-            template=template
-        )
-        fig.update_layout(
-                showlegend = True,
-                geo_scope='usa',
-                coloraxis_colorbar=dict(
-                    title='# of Cases',
-                    tickvals=[1, 2, 3, 4, 5],
-                    ticktext=['10', '100', '1k', '10k','100k'],
-                    len=0.75, thickness=10
-                ),
-                margin={"r":0,"t":75,"l":0,"b":0}
-        )
+        location = 'Province/State'
+        tickvals = [1, 2, 3, 4, 5]
+        ticktext=['10', '100', '1k', '10k','100k']
+        lat, lon = 'Latitude', 'Longitude'
     else:
         report = report.sort_values(case_type)
-        fig = px.scatter_geo(
-            report, title='Case Distribution Map',
-            lat=report['Lat'], lon=report['Long_'], scope='usa',
-            color = np.log10(report[case_type]+1),opacity=0.75,
-            size = report[case_type]**0.5,
-            hover_data=['Confirmed', 'Deaths', 'Recovered', 'Active'], 
-            hover_name='Combined_Key',
-            color_continuous_scale='YlOrRd',
-            template=template,
-        )
-        fig.update_layout(
-            showlegend = True,
-            geo_scope='usa',
-            coloraxis_colorbar=dict(
-                title='# of Cases',
-                tickvals=[0, 1, 2, 3, 4],
-                ticktext=['0', '10', '100', '1k','10k'],
-                len=0.75, thickness=10
+        location = 'Combined_Key'
+        tickvals = [1, 2, 3, 4]
+        ticktext=['10', '100', '1k', '10k']
+        lat, lon = 'Lat', 'Long_'
+    fig = px.scatter_geo(
+        report, title='Case Distribution Map',
+        lat=report[lat], lon=report[lon], scope='usa',
+        color = np.log10(report[case_type]+1),opacity=0.75,
+        size = report[case_type]**0.5,
+        hover_data=['Confirmed', 'Deaths', 'Recovered', 'Active'], 
+        hover_name=location,
+        color_continuous_scale='YlOrRd',
+        template=template,
+    )
+    fig.update_layout(
+        showlegend = True,
+        geo_scope='usa',
+        coloraxis_colorbar=dict(
+            title='# of Cases',
+            tickvals=tickvals,
+            ticktext=ticktext,
+            len=0.75, thickness=10
 
-            ),
-            margin={"r":0,"t":75,"l":0,"b":0}
-        )
+        ),
+        margin={"r":0,"t":75,"l":0,"b":0}
+    )
     return fig
 
 

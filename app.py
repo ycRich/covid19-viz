@@ -154,7 +154,7 @@ def update_map(case_type, selected_date):
         tickvals = [1, 2, 3, 4]
         ticktext=['10', '100', '1k', '10k']
         lat, lon = 'Lat', 'Long_'
-    fig = px.choropleth_mapbox(
+    fig = px.scatter_geo(
         report, title='Case Distribution Map',
         lat=report[lat], lon=report[lon], scope='usa',
         color = np.log10(report[case_type]+1),opacity=0.75,
